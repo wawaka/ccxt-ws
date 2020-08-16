@@ -54,7 +54,6 @@ class BinanceWebSocket:
     def on_message(self, ws, message):
         obj = json.loads(message)
         if 'id' in obj:
-            # print(f"on_message {message}")
             with self.subscriptions_lock:
                 try:
                     symbol = self.subscriptions[obj['id']]
@@ -67,15 +66,12 @@ class BinanceWebSocket:
             locked_order_book = self.get_locked_order_book(symbol)
             with locked_order_book.internal_lock, locked_order_book.user_lock:
                 snapshot = fetch_order_book(symbol)
-                # pp(snapshot)
                 if locked_order_book.book.add_snapshot(snapshot):
                     print(f"{symbol} ready")
                     locked_order_book.ready.set()
 
         elif 's' in obj:
             symbol = obj['s']
-            # print(f"on_message {symbol}")
-            # print('.', end='', flush=True)
             locked_order_book = self.get_locked_order_book(symbol)
             with locked_order_book.internal_lock, locked_order_book.user_lock:
                 locked_order_book.book.update(obj)
@@ -83,22 +79,17 @@ class BinanceWebSocket:
                 if locked_order_book.book.add_snapshot(snapshot):
                     print(f"{symbol} ready")
                     locked_order_book.ready.set()
-        # else:
-        #     print(f"on_message {message}")
 
     def on_error(self, ws, error):
         raise Exception(f"websocket error: {error}")
         # TODO: add proper error handling here
-        # print(f"on_error: {error}")
 
     def on_open(self, ws):
-        # print("on_open")
         self.opened.set()
 
     def on_close(self, ws):
         pass
         # TODO: here should go code to clear interanl state and restart socket again
-        # print("on_close")
 
     def ensure_opened(self):
         self.opened.wait()
