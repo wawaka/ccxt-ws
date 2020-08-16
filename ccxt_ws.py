@@ -1,6 +1,3 @@
-from pprint import pprint as pp
-import time
-
 import ccxt
 
 import binance_ws
@@ -18,15 +15,16 @@ class binance_websocket(ccxt.binance):
 
         if self.bws is None:
             self.bws = binance_ws.BinanceWebSocket()
-            
+
         self.bws.ensure_opened()
 
-        ob = self.bws.get_order_book(symbol, limit)
+        ob = self.bws.get_order_book(symbol)
 
         if limit is not None:
             ob['asks'] = ob['asks'][:limit]
             ob['bids'] = ob['bids'][:limit]
 
+        # convert to mimic original fetch_order_book() format
         return {
             'asks': [[float(p), float(q)] for p, q in ob['asks']],
             'bids': [[float(p), float(q)] for p, q in ob['bids']],
@@ -34,38 +32,3 @@ class binance_websocket(ccxt.binance):
             'datetime': None,
             'timestamp': None,
         }
-
-
-
-def test():
-    binance = ccxt.binance()
-    # order_book = binance.fetch_order_book("BTC/USDT", 5)
-    pp(binance.fetch_order_book("BTC/USDT", 5))
-
-
-def main():
-    symbol = "BTC/USDT"
-    # symbol = "BTCUSDT"
-    # symbol = "btcusdt"
-    binance = binance_websocket()
-    # order_book = binance.fetch_order_book("BTC/USDT", 5)
-    binance.fetch_order_book("BTC/USDT", 5)
-    while True:
-        time.sleep(30)
-        ob = binance.fetch_order_book("BTC/USDT", 5)
-        print(f"{len(ob['asks'])} {len(ob['bids'])}")
-    # pp(binance.fetch_order_book("ETH/USDT", 5))
-    # pp(binance.fetch_order_book("BTC/USDT", 5))
-    # pp(binance.fetch_order_book("ETH/USDT", 5))
-    # binance.load_markets()
-    # self.load_markets()
-    # market = binance.market(symbol)
-    # pp(market)
-    # request = {
-    #     'symbol': market['id'],
-    # }
-
-
-if __name__ == "__main__":
-    # test()
-    main()

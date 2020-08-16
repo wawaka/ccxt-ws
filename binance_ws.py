@@ -54,7 +54,7 @@ class BinanceWebSocket:
     def on_message(self, ws, message):
         obj = json.loads(message)
         if 'id' in obj:
-            print(f"on_message {message}")
+            # print(f"on_message {message}")
             with self.subscriptions_lock:
                 try:
                     symbol = self.subscriptions[obj['id']]
@@ -75,7 +75,7 @@ class BinanceWebSocket:
         elif 's' in obj:
             symbol = obj['s']
             # print(f"on_message {symbol}")
-            print('.', end='', flush=True)
+            # print('.', end='', flush=True)
             locked_order_book = self.get_locked_order_book(symbol)
             with locked_order_book.internal_lock, locked_order_book.user_lock:
                 locked_order_book.book.update(obj)
@@ -83,18 +83,20 @@ class BinanceWebSocket:
                 if locked_order_book.book.add_snapshot(snapshot):
                     print(f"{symbol} ready")
                     locked_order_book.ready.set()
-        else:
-            print(f"on_message {message}")
+        # else:
+        #     print(f"on_message {message}")
 
     def on_error(self, ws, error):
-        print(f"on_error: {error}")
+        raise Exception(f"websocket error: {error}")
+        # print(f"on_error: {error}")
 
     def on_open(self, ws):
-        print("on_open")
+        # print("on_open")
         self.opened.set()
 
     def on_close(self, ws):
-        print("on_close")
+        pass
+        # print("on_close")
 
     def ensure_opened(self):
         self.opened.wait()
@@ -128,43 +130,3 @@ class BinanceWebSocket:
         locked_order_book.ready.wait()
         with locked_order_book.user_lock:
             return locked_order_book.book.get_order_book()
-
-
-def main():
-    websocket.enableTrace(True)
-    bws = BinanceWebSocket()
-    print("created socket")
-    bws.ensure_opened()
-    print("sock is open")
-
-    pp(bws.get_order_book('BTCUSDT'))
-    pp(bws.get_order_book('ETHUSDT'))
-    pp(bws.get_order_book('BTCUSDT'))
-    pp(bws.get_order_book('ETHUSDT'))
-
-    # time.sleep(5)
-    # 
-    # ob = bws.get_order_book('BTCUSDT')
-    # pp(ob)
-    # 
-    # time.sleep(3)
-    # 
-    # ob = bws.get_order_book('btcusdt')
-    # pp(ob)
-
-    # input()
-    # addr = "wss://stream.binance.com:9443/ws"
-    # # addr = "wss://testnet-dex.binance.org/api/ws"
-    # ws = websocket.WebSocketApp(addr,
-    #                           on_message = on_message,
-    #                           on_error = on_error,
-    #                           on_close = on_close)
-    # ws.on_open = on_open
-    # ws.run_forever()
-    print("main exiting")
-
-
-if __name__ == "__main__":
-    main()
-    # r = fetch_order_book('BTCUSDT', 5)
-    # pp(r)
