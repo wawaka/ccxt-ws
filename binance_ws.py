@@ -88,6 +88,7 @@ class BinanceWebSocket:
 
     def on_error(self, ws, error):
         raise Exception(f"websocket error: {error}")
+        # TODO: add proper error handling here
         # print(f"on_error: {error}")
 
     def on_open(self, ws):
@@ -96,6 +97,7 @@ class BinanceWebSocket:
 
     def on_close(self, ws):
         pass
+        # TODO: here should go code to clear interanl state and restart socket again
         # print("on_close")
 
     def ensure_opened(self):
